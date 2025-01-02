@@ -1,0 +1,14 @@
+---
+
+actions:
+    - install:
+        description: "Install the latest version of UI for Apache Kafka."
+        icon: "media/icon_kafkaui.png"
+        parameters:
+            - uninstall:
+                description: "Uninstall existing Kafka UI before installation."
+                required: false
+
+    - uninstall:
+        description: "Uninstall Kafka UI."
+        icon: "media/icon_kafkaui.png"

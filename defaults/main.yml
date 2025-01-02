@@ -1,0 +1,35 @@
+---
+
+# Variables for container configuration
+
+# kafka_ui_repository_url can be a URL to a docker image or a tar file. example: "docker.io/sonatype/nexus3" or "/tmp/nexus3.67.1.tar", "https://192.168.1.1/repo/nexus.tar".
+kafka_ui_repository_url: "docker.io/provectuslabs/kafka-ui"
+# kakfa_ui_repository_tag can be a tag of the image or a version of the tar file. example: "3.67.1" or "latest".
+# kafka_ui_repository_tag: ""
+# kafka_ui_repository_checksum can be a checksum of the container file. example: "sha256:1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef" or "1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef".
+# kafka_ui_repository_checksum: ""
+# kafka_ui_repository_checksum_algorithm can be a checksum algorithm of the container file. example: "sha256", sha512", "md5".
+# kafka_ui_repository_checksum_algorithm: "sha256"
+# kafka_ui_container_name is the name of the container used in podman or docker. example: "nexus3".
+kafka_ui_container_name: "kafka-ui"
+# kafka_ui_container_ports is a list of ports used in the container. example: ["8081:8081"] or ["8081:8081", "8082:8082"].
+kafka_ui_container_ports: ["8080:8080"]
+# kafka_ui_container_volumes is a list of volumes used in the container. example: ["nexus/nexus-data:/nexus-data:Z"] or ["nexus/nexus-data:/nexus-data:Z", "nexus/config:/nexus-config:Z"].
+kafka_ui_container_volumes: ["kafka-ui/data:/etc/kafkaui:Z"]
+
+
+# Variables for Hashicorp Vault configuration
+
+# kafka_ui_repository_validate_certs configures if the certificate of the server should be validated. example: true or false. 
+kafka_ui_repository_validate_certs: false
+
+
+# Variables for Vault configuration for storing secrets and configuration data
+
+# kafka_ui_secret_engine_name is the name of the vault used for storing secrets and configuration data. example: "nexus-repository".
+kafka_ui_secret_engine_name: "kafka-ui"
+# kafka_ui_secret_engine_description is the description of the vault used for storing secrets and configuration data. example: "Secrets for Sonatype Nexus Repository.".
+kafka_ui_secret_engine_description: "Secrets for Provectus Kafka UI."
+# kafka_ui_vault_id is the unique id of the vault used for storing secrets and configuration data. default is {{ansible_fqdn }}.
+# kafka_ui_vault_id: "" 
+

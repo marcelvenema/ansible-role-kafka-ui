@@ -1,0 +1,30 @@
+---
+
+# Show message
+- name: Show action message
+  ansible.builtin.debug:
+    msg: "Starting role {{ role_name }}... action: {{ action }}."
+
+# If action variable is not defined, gather status of the service and set action variable  
+- name: Gather action variable status...
+  ansible.builtin.include_tasks: get_status.yml
+  when: action is not defined
+
+# Assert that action is in actions
+- name: "Verify valid action ({{ action }})..."
+  ansible.builtin.assert:
+    that:
+      - action in (actions | map('dict2items') | map('first') | map(attribute='key') | list)
+    fail_msg: "The action '{{ action }}' is not in the list of valid actions..."
+    quiet: true
+
+# -------------------------------------------------------
+
+- name: Start install action...
+  ansible.builtin.include_tasks: install.yml
+  when: action == "install"
+
+- name: Start uninstall action...
+  ansible.builtin.include_tasks: uninstall.yml
+  when: action == "uninstall"
+

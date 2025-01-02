@@ -1,0 +1,162 @@
+---
+
+#########################################################
+## Pre-installation                                    ##
+#########################################################
+
+# Validate variables
+- name: Validate variables for action...
+  ansible.builtin.assert:
+    that: item is defined
+    fail_msg: "Required variable '{{ item }}' has not been provided."
+    quiet: true
+  with_items:
+    # should be defined in defaults/main.yml
+    - kafka_ui_repository_url
+
+#########################################################
+## Pre-installation platform check                     ##
+#########################################################
+
+# Determine platformn
+- name: Determine platform for installation...
+  ansible.builtin.include_role:
+    name: server-config
+  vars:
+    action: "platform_check"
+  register: platform
+
+#########################################################
+## Pre-installation uninstall                          ##
+#########################################################
+
+# Set uninstall to false if not defined
+- name: Register variable (uninstall)...
+  ansible.builtin.set_fact:
+    uninstall: false
+  when: uninstall is not defined
+
+# Run uninstall if uninstall is set
+- name: Start uninstall task...
+  ansible.builtin.include_tasks: uninstall.yml
+  ignore_errors: true
+  when: uninstall == true
+
+#########################################################
+## Installation                                        ##
+#########################################################
+
+#########################################################
+## Installation on podman                              ##
+#########################################################
+
+- name: Install container on Podman...
+  when: platform == "podman"
+  block:
+
+    # Check if podman is detected
+    - name: Check if podman is detected
+      ansible.builtin.assert:
+        that: '"podman" in ansible_facts.packages'
+        fail_msg: "Podman is not installed. Please install Podman first. Cannot continue..."
+
+    # Set variable service_user
+    - name: Set variable (podman_service_user)...
+      ansible.builtin.set_fact:
+        podman_service_user: "podman"
+
+    # Get uid of user podman
+    - name: "Get uid of user ({{ podman_service_user }})..."
+      ansible.builtin.user:
+        name: "{{ podman_service_user }}"
+      register: podman_service_user_details
+
+    # Set fact podman_uid
+    - name: "Register uid of user ({{ podman_service_user }})..."
+      ansible.builtin.set_fact:
+        podman_uid: "{{ podman_service_user_details.uid }}"
+
+    # Create volumes
+    - name: Create configuration folders...
+      ansible.builtin.include_role:
+        name: podman
+      vars:
+        action: create_volumes
+        volume_owner: 0200
+        container_volumes: "{{ kafka_ui_container_volumes }}"
+
+    # Import container
+    - name: "Install {{ kafka_ui_container_name }} container on podman"
+      ansible.builtin.include_role:
+        name: podman
+      vars:
+        action: import_container
+        container_repository_url: "{{ kafka_ui_repository_url }}"
+        container_repository_tag: "{{ kafka_ui_repository_tag | default('latest') }}"
+        container_repository_checksum: "{{ kafka_ui_repository_checksum }}"
+        container_repository_checksum_algorithm: "{{ kafka_ui_repository_checksum_algorithm }}"
+        container_name: "{{ kafka_ui_container_name }}"
+        container_ports: "{{ kafka_ui_container_ports }}"
+        container_volumes: "{{ kafka_ui_container_volumes }}"
+        container_user: "{{ podman_uid }}"
+        container_env: "{{ kafka_ui_container_env | default({}) }}"
+
+#########################################################
+## Installation via kubernetes                         ##
+#########################################################
+
+- name: Install container on Kubernetes...
+  when: platform == "kubernetes"
+  block:
+
+    # Debug message
+    - name: Debug message
+      ansible.builtin.debug:
+        msg: "Install application via kubernetes"
+
+    # Show information message
+    - name: This part is not (yet) implemented.
+      ansible.builtin.debug:
+        msg: "This part is not (yet) implemented."
+
+    # Stop playbook
+    - name: Stop playbook
+      ansible.builtin.meta: end_play
+
+#########################################################
+## Installation on host                                ##
+#########################################################
+
+- name: Install application on host...
+  when: platform == "host"
+  block:
+
+    # Debug message
+    - name: Debug message
+      ansible.builtin.debug:
+        msg: "Install application on host"
+
+    # Show information message
+    - name: This part is not (yet) implemented.
+      ansible.builtin.debug:
+        msg: "This part is not (yet) implemented."
+
+    # Stop playbook
+    - name: Stop playbook
+      ansible.builtin.meta: end_play
+
+#########################################################
+## Configuration                                       ##
+#########################################################
+
+# Configure application
+- name: Start configure task...
+  ansible.builtin.include_tasks: configure.yml
+
+#########################################################
+## Post-install                                        ##
+#########################################################
+
+# Unset variables
+#- name: Unset variables...
+#  ansible.builtin.set_fact:
