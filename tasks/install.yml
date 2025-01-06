@@ -60,30 +60,28 @@
         that: '"podman" in ansible_facts.packages'
         fail_msg: "Podman is not installed. Please install Podman first. Cannot continue..."
 
-    # Set variable service_user
-    - name: Set variable (podman_service_user)...
-      ansible.builtin.set_fact:
-        podman_service_user: "podman"
-
-    # Get uid of user podman
-    - name: "Get uid of user ({{ podman_service_user }})..."
-      ansible.builtin.user:
-        name: "{{ podman_service_user }}"
-      register: podman_service_user_details
-
-    # Set fact podman_uid
-    - name: "Register uid of user ({{ podman_service_user }})..."
-      ansible.builtin.set_fact:
-        podman_uid: "{{ podman_service_user_details.uid }}"
-
     # Create volumes
     - name: Create configuration folders...
       ansible.builtin.include_role:
         name: podman
       vars:
         action: create_volumes
-        volume_owner: 0200
         container_volumes: "{{ kafka_ui_container_volumes }}"
+
+    #####################################################
+    ## Firewall configuration                          ##
+    #####################################################
+
+    # Open firewall ports
+    - name: Open firewall ports...
+      become: true
+      ansible.builtin.firewalld:
+        port: "{{ kafka_ui_container_ports[0].split(':')[0] }}/tcp"
+        permanent: true
+        state: enabled
+        immediate: true
+
+
 
     # Import container
     - name: "Install {{ kafka_ui_container_name }} container on podman"
@@ -98,7 +96,7 @@
         container_name: "{{ kafka_ui_container_name }}"
         container_ports: "{{ kafka_ui_container_ports }}"
         container_volumes: "{{ kafka_ui_container_volumes }}"
-        container_user: "{{ podman_uid }}"
+        # container_user: "{{ podman_service_user }}"
         container_env: "{{ kafka_ui_container_env | default({}) }}"
 
 #########################################################

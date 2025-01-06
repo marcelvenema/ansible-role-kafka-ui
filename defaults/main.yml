@@ -15,7 +15,10 @@ kafka_ui_container_name: "kafka-ui"
 # kafka_ui_container_ports is a list of ports used in the container. example: ["8081:8081"] or ["8081:8081", "8082:8082"].
 kafka_ui_container_ports: ["8080:8080"]
 # kafka_ui_container_volumes is a list of volumes used in the container. example: ["nexus/nexus-data:/nexus-data:Z"] or ["nexus/nexus-data:/nexus-data:Z", "nexus/config:/nexus-config:Z"].
-kafka_ui_container_volumes: ["kafka-ui/data:/etc/kafkaui:Z"]
+kafka_ui_container_volumes: ["kafka-ui:/config.yml:Z"]
+# kafka_ui_container_envs is a list of environment variables used in the container. example: ["NEXUS_CONTEXT_PATH=/nexus"].
+kafka_ui_container_env:
+  DYNAMIC_CONFIG_ENABLED: true
 
 
 # Variables for Hashicorp Vault configuration
