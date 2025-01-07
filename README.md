@@ -6,7 +6,7 @@ Ansible role for installation, configuration, usage and management of Kafka UI, 
 </td>
 </tr></table>
 
-Ansible role Cockpit : [Design](docs/DESIGN.md)  |  [Examples](examples)  |  [Test](molecule)  |  [Issues]()  |<br>
+Ansible role Kafka UI : [Design](docs/DESIGN.md)  |  [Examples](examples)  |  [Test](molecule)  |  [Issues]()  |<br>
 Latest version:
 
 # Actions:

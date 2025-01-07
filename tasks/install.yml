@@ -81,7 +81,9 @@
         state: enabled
         immediate: true
 
-
+    #####################################################
+    ## Import container                                ##
+    #####################################################
 
     # Import container
     - name: "Install {{ kafka_ui_container_name }} container on podman"
@@ -96,7 +98,6 @@
         container_name: "{{ kafka_ui_container_name }}"
         container_ports: "{{ kafka_ui_container_ports }}"
         container_volumes: "{{ kafka_ui_container_volumes }}"
-        # container_user: "{{ podman_service_user }}"
         container_env: "{{ kafka_ui_container_env | default({}) }}"
 
 #########################################################
