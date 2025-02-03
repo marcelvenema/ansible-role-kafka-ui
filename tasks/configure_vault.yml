@@ -1,0 +1,66 @@
+---
+
+#########################################################
+## Vault module for Kafka UI                           ##
+#########################################################
+# secret engine name (vault_name): kafka-ui
+# secret engine type: kv
+# secret name: variable kafka-server_vault_id, default '{{ ansible_fqdn | replace('.', '-') }}'
+
+# Validate variables
+- name: Validate required variables for action.
+  ansible.builtin.assert:
+    that: "item is defined"
+    fail_msg: "Required variable '{{ item }}' has not been provided."
+    quiet: true
+  with_items:
+    - vault_address
+    - vault_token
+
+# Register variable (_secret_engine_name)
+- name: Register variable (secret_engine_name)...
+  ansible.builtin.set_fact:
+   _secret_engine_name: "{{ kafka_ui_secret_engine_name | default('kafka-ui') }}"
+
+# Register variable (_secret_name)
+- name: Register variable (secret_name)...
+  ansible.builtin.set_fact:
+    _secret_name: "{{ kafka_ui_vault_id | default( ansible_fqdn | replace('.', '-') ) }}"
+
+#########################################################
+## Secret Engine                                       ##
+#########################################################
+
+# Create secret_engine if it does not exist
+- name: "Create Vault secret engine for {{ _secret_engine_name }}..."
+  ansible.builtin.include_role:
+    name: vault
+    tasks_from: secret_engine.yml
+  vars:
+    action: create_secret_engine
+    secret_engine_name: "{{ _secret_engine_name }}"
+    secret_engine_description: "{{ kafka_ui_secret_engine_description | default('Secrets for Kafka server.') }}"
+    secret_engine_type: "kv"
+
+#########################################################
+## Secrets                                             ##
+#########################################################
+
+# Declare variable _secret_keyvalue
+# nexus_repository_username: '{{ nexus_repository_username | default('change_me') }}'
+- name: Register variable (secret_keyvalue)...
+  ansible.builtin.set_fact:
+    _secret_keyvalue: |
+      kafka_ui_repository_url : {{ kafka_ui_repository_url | default('change_me') }}
+      kafka_ui_address : {{ kafka_ui_address | default('change_me') }}
+
+# Store usernames and passwords in Hashicorp Vault.
+- name: Store Kafka server secrets and configuration data in Vault...
+  ansible.builtin.include_role:
+    name: vault
+    tasks_from: secrets.yml
+  vars:
+    action: create_secret
+    secret_engine_name: "{{ _secret_engine_name }}"
+    secret_name: "{{ _secret_name }}"
+    secret_keyvalue: "{{ _secret_keyvalue | from_yaml }}"

@@ -4,3 +4,20 @@
 ## Configuration                                       ##
 #########################################################
 
+# Get port of kafka from role_container_ports
+- name: Retrieve container port...
+  ansible.builtin.set_fact:
+    kafka_ui_port: "{{ kafka_ui_container_ports[0].split(':')[0] }}"
+  when: platform == "podman"
+
+# Get IP address of Kafka serverNexus Repository
+- name: Register variable (container_address)...
+  ansible.builtin.set_fact:
+    kafka_ui_address: "http://{{ ansible_default_ipv4.address }}:{{ kafka_ui_port }}"
+
+# Configure Vault if Vault is present
+- name: Configure Vault for Kafka UI
+  ansible.builtin.include_tasks: configure_vault.yml
+  when:
+    - vault_address is defined
+    - vault_token is defined
