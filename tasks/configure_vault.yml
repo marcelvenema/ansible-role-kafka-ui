@@ -3,9 +3,9 @@
 #########################################################
 ## Vault module for Kafka UI                           ##
 #########################################################
-# secret engine name (vault_name): kafka-ui
+# secret engine name: kafka-ui
 # secret engine type: kv
-# secret name: variable kafka-server_vault_id, default '{{ ansible_fqdn | replace('.', '-') }}'
+# secret name: unique id to identify vault. default '{{ ansible_fqdn | replace('.', '-') }}'
 
 # Validate variables
 - name: Validate required variables for action.
@@ -20,12 +20,12 @@
 # Register variable (_secret_engine_name)
 - name: Register variable (secret_engine_name)...
   ansible.builtin.set_fact:
-   _secret_engine_name: "{{ kafka_ui_secret_engine_name | default('kafka-ui') }}"
+   _secret_engine_name: "{{ kafka_ui_vars.secrets.secret_engine_name | default('kafka-ui') }}"
 
 # Register variable (_secret_name)
 - name: Register variable (secret_name)...
   ansible.builtin.set_fact:
-    _secret_name: "{{ kafka_ui_vault_id | default( ansible_fqdn | replace('.', '-') ) }}"
+    _secret_name: "{{ kafka_ui_vars.secrets.secret_name | default( ansible_fqdn | replace('.', '-') ) }}"
 
 #########################################################
 ## Secret Engine                                       ##
@@ -38,7 +38,7 @@
   vars:
     action: create_secret_engine
     secret_engine_name: "{{ _secret_engine_name }}"
-    secret_engine_description: "{{ kafka_ui_secret_engine_description | default('Secrets for Kafka server.') }}"
+    secret_engine_description: "{{ kafka_ui_vars.secrets.secret_engine_description | default('Secrets for Kafka UI.') }}"
     secret_engine_type: "kv"
 
 #########################################################
@@ -50,8 +50,10 @@
 - name: Register variable (secret_keyvalue)...
   ansible.builtin.set_fact:
     _secret_keyvalue: |
-      kafka_ui_repository_url : {{ kafka_ui_repository_url | default('change_me') }}
+      kafka_ui_repository_url : {{ kafka_ui_vars.container.repository_url | default('change_me') }}
       kafka_ui_address : {{ kafka_ui_address | default('change_me') }}
+      kafka_ui_username : {{ kafka_ui_vars.secrets.username | default('change_me') }}
+      kafka_ui_password : {{ kafka_ui_vars.secrets.password | default('change_me') }}
 
 # Store usernames and passwords in Hashicorp Vault.
 - name: Store Kafka server secrets and configuration data in Vault...
