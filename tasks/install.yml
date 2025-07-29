@@ -22,6 +22,11 @@
   when: kafka_ui_vars.container.platform == "podman"
   block:
 
+    # Gather installed packages
+    - name: Gather installed packages
+      ansible.builtin.package_facts:
+        manager: auto
+
     # Check if podman is detected
     - name: Check if podman is detected
       ansible.builtin.assert:
@@ -63,14 +68,20 @@
         name: podman
       vars:
         action: import_container
+        container_name: "{{ kafka_ui_vars.container.name }}"
         container_repository_url: "{{ kafka_ui_vars.container.repository_url }}"
         container_repository_tag: "{{ kafka_ui_vars.container.repository_tag | default('latest') }}"
         container_repository_checksum: "{{ kafka_ui_vars.container.repository_checksum | default(omit) }}"
         container_repository_checksum_algorithm: "{{ kafka_ui_vars.container.repository_checksum_algorithm | default(omit) }}"
-        container_name: "{{ kafka_ui_vars.container.name }}"
         container_ports: "{{ kafka_ui_vars.container.ports }}"
         container_volumes: "{{ kafka_ui_vars.container.volumes }}"
         container_env: "{{ kafka_ui_vars.container.env | default({}) }}"
+        container_healthcheck: "{{ kafka_ui_vars.container.healthcheck | default(omit) }}"
+        container_healthcheck_fail: "{{ kafka_ui_vars.container.healthcheck_fail | default('none') }}"
+        container_healthcheck_retries: "{{ kafka_ui_vars.container.healthcheck_retries | default(omit) }}"
+        container_healthcheck_interval: "{{ kafka_ui_vars.container.healthcheck_interval | default(omit) }}"
+        container_healthcheck_timeout: "{{ kafka_ui_vars.container.healthcheck_timeout | default(omit) }}"
+        container_healthcheck_start: "{{ kafka_ui_vars.container.healthcheck_start | default(omit) }}"
 
 #########################################################
 ## Installation via kubernetes                         ##

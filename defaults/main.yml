@@ -5,7 +5,16 @@
 #########################################################
 
 # default role variables for the kafka-ui role
-kafka_ui:  
+kafka_ui:
+  # address is the URL to connect to the Kafka UI server.
+  address: ""
+  # username is the username to connect to the Kafka UI server.
+  username: ""
+  # password is the password to connect to the Kafka UI server.
+  password: ""
+  # token is the token used to authenticate to the Kafka UI server.
+  token: ""
+
   # metadata contains information about the role.
   metadata:
     name: "kafka-ui"
@@ -13,52 +22,49 @@ kafka_ui:
     version: "0.7.2"
     maintainer: ""
     maintainer_email: ""
-  # address is the URL to connect to the Kafka UI server.
-  address: ""
-  # username is the username to connect to the Kafka UI server.
-  username: ""
-  # password is the password to connect to the Kafka UI server.
-  password: ""
+
   # application contains the configuration for the application server.
   application:
     # validate_certs configures if the certificate of the application server should be validated. example: true or false.
     validate_certs: false
+
   # container contains the configuration for the container used to run Kafka UI.
   container:
     # name is the name of the container used in podman or docker. example: "kafka-ui".
     name: "kafka-ui"
-    # uninstall indicates if the container should be uninstalled or not. example: true or false. Default is false.
-    uninstall: false
     # platform is the platform used for the container. example: "podman" or "docker".
     platform: "podman"
+    # uninstall indicates if the container should be uninstalled or not. example: true or false. Default is false.
+    uninstall: false
+    # repository_url can be a URL to a docker image or a tar file. example: "docker.io/provectuslabs/kafka-ui" or "/tmp/kafka-ui.tar", "https://192.168.1.1/repo/kafka-ui.tar".
+    repository_url: "docker.io/provectuslabs/kafka-ui"
+    # repository_tag can be a tag of the image or a version of the tar file. example: "0.7.2" or "latest".
+    # repository_tag: "latest"
+    # repository_checksum can be a checksum of the container file. example: "sha256:1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef".
+    # repository_checksum: ""
+    # repository_checksum_algorithm can be a checksum algorithm of the container file. example: "sha256", "sha512", "md5".
+    # repository_checksum_algorithm: "sha256"
+    # ports is a list of ports used in the container. example: ["8080:8080"] or ["8080:8080", "8081:8081"].
+    ports:
+      - "8080:8080"
     # volumes is a list of volumes used in the container. example: ["kafka-ui/config.yml:/config.yml:Z"] or ["kafka-ui/config.yml:/config.yml:Z", "kafka-ui/data:/data:Z"].
     volumes:
       - "kafka-ui:/config.yml:Z"
     # volume_mode is the mode of the volume used in the container. example: "0777" or "0755". Default is "0777".
     volume_mode: "0777"
-    # ports is a list of ports used in the container. example: ["8080:8080"] or ["8080:8080", "8081:8081"].
-    ports:
-      - "8080:8080"
     # environment is a list of environment variables used in the container. example: ["DYNAMIC_CONFIG_ENABLED=true"].
     environment:
       DYNAMIC_CONFIG_ENABLED: "true"
-    # container_healthcheck is the command used to check if the container is healthy. example: "curl -f http://localhost:8080/health || exit 1".
-    container_healthcheck: ""
-    # container_healthcheck_start is the time to wait before starting the health check. example: "30s".
-    container_healthcheck_start: "30s"
-    # repository_url can be a URL to a docker image or a tar file. example: "docker.io/provectuslabs/kafka-ui" or "/tmp/kafka-ui.tar", "https://192.168.1.1/repo/kafka-ui.tar".
-    repository_url: "docker.io/provectuslabs/kafka-ui"
-    # repository_tag can be a tag of the image or a version of the tar file. example: "0.7.2" or "latest".
-    # repository_tag: ""
-    # repository_checksum can be a checksum of the container file. example: "sha256:1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef".
-    # repository_checksum: ""
-    # repository_checksum_algorithm can be a checksum algorithm of the container file. example: "sha256", "sha512", "md5".
-    # repository_checksum_algorithm: ""
+    # healthcheck is the command used to check if the container is healthy. example: "curl -f http://localhost:8080/health || exit 1".
+    healthcheck: "wget -qO- http://127.0.0.1:8080/actuator/health || exit 1"
+    # healthcheck_start is the time to wait before starting the health check. example: "30s".
+    healthcheck_start: "30s"
+
+  # secrets contains the configuration for the vault used for storing secrets and configuration data.
   secrets:
+    # secret_name is the unique id of the vault used for storing secrets and configuration data. default is {{ ansible_fqdn }}.
+    secret_name: "{{ ansible_fqdn | replace('.', '-') }}"
     # secret_engine_name is the name of the vault used for storing secrets and configuration data. example: "kafka-ui-repository".
     secret_engine_name: "kafka-ui"
     # secret_engine_description is the description of the vault used for storing secrets and configuration data.  example: "Secrets for Provectus Kafka UI."
     secret_engine_description: "Secrets for Provectus Kafka UI."
-    # vault_id is the unique id of the vault used for storing secrets and configuration data. default is {{ ansible_fqdn }}.
-    secret_name: "{{ ansible_fqdn | replace('.', '-') }}"
-
