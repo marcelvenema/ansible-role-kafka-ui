@@ -1,5 +1,4 @@
 ---
-
 #########################################################
 ## Vault module for Kafka UI                           ##
 #########################################################
@@ -10,8 +9,8 @@
 # Validate variables
 - name: Validate required variables for action.
   ansible.builtin.assert:
-    that: "item is defined"
-    fail_msg: "Required variable '{{ item }}' has not been provided."
+    that: item is defined
+    fail_msg: Required variable '{{ item }}' has not been provided.
     quiet: true
   with_items:
     - vault_address
@@ -20,26 +19,26 @@
 # Register variable (_secret_engine_name)
 - name: Register variable (secret_engine_name)...
   ansible.builtin.set_fact:
-   _secret_engine_name: "{{ kafka_ui_vars.secrets.secret_engine_name | default('kafka-ui') }}"
+    _secret_engine_name: "{{ kafka_ui_vars.secrets.secret_engine_name | default('kafka-ui') }}"
 
 # Register variable (_secret_name)
 - name: Register variable (secret_name)...
   ansible.builtin.set_fact:
-    _secret_name: "{{ kafka_ui_vars.secrets.secret_name | default( ansible_fqdn | replace('.', '-') ) }}"
+    _secret_name: "{{ kafka_ui_vars.secrets.secret_name | default(ansible_fqdn | replace('.', '-')) }}"
 
 #########################################################
 ## Secret Engine                                       ##
 #########################################################
 
 # Create secret_engine if it does not exist
-- name: "Create Vault secret engine for {{ _secret_engine_name }}..."
+- name: Create Vault secret engine for {{ _secret_engine_name }}...
   ansible.builtin.include_role:
-    name: vault
+    name: openbao
   vars:
     action: create_secret_engine
     secret_engine_name: "{{ _secret_engine_name }}"
     secret_engine_description: "{{ kafka_ui_vars.secrets.secret_engine_description | default('Secrets for Kafka UI.') }}"
-    secret_engine_type: "kv"
+    secret_engine_type: kv
 
 #########################################################
 ## Secrets                                             ##
@@ -55,10 +54,10 @@
       kafka_ui_username : {{ kafka_ui_vars.secrets.username | default('change_me') }}
       kafka_ui_password : {{ kafka_ui_vars.secrets.password | default('change_me') }}
 
-# Store usernames and passwords in Hashicorp Vault.
+# Store usernames and passwords in OpenBao Vault.
 - name: Store Kafka server secrets and configuration data in Vault...
   ansible.builtin.include_role:
-    name: vault
+    name: openbao
   vars:
     action: create_secret
     secret_engine_name: "{{ _secret_engine_name }}"

@@ -1,5 +1,4 @@
 ---
-
 #########################################################
 ## Kafka-UI configure action                           ##
 #########################################################
@@ -13,7 +12,7 @@
 # Get IP address of Kafka UI
 - name: Register variable (kafka_ui_address)...
   ansible.builtin.set_fact:
-    kafka_ui_address: "http://{{ ansible_default_ipv4.address }}:{{ kafka_ui_port }}"
+    kafka_ui_address: http://{{ ansible_default_ipv4.address }}:{{ kafka_ui_port }}
 
 # Register variable for Kafka server
 - name: Register variable (kafka_ui)...

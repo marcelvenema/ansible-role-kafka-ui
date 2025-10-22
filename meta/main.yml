@@ -1,10 +1,9 @@
 ---
 
 dependencies: []
-
 galaxy_info:
-  author: "Marcel Venema"
-  description: "Ansible role for Provectus Kafka UI"
+  author: Marcel Venema
+  description: Ansible role for Provectus Kafka UI
   company: ""
   license: MIT
   min_ansible_version: "2.4"
