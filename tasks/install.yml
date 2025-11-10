@@ -1,5 +1,4 @@
 ---
-
 #########################################################
 ## Kafka UI install action                             ##
 #########################################################
@@ -11,15 +10,14 @@
 # Run uninstall if uninstall is set
 - name: Run uninstall playbook if set
   ansible.builtin.include_tasks: uninstall.yml
-  ignore_errors: true
-  when: kafka_ui_vars.container.uninstall == true
+  when: kafka_ui_container_uninstall | default(false)
 
 #########################################################
 ## Installation on podman                              ##
 #########################################################
 
-- name: Install container on Podman...
-  when: kafka_ui_vars.container.platform == "podman"
+- name: Install {{ kafka_ui_container_name }} container on Podman...
+  when: kafka_ui_container_platform == "podman"
   block:
 
     # Gather installed packages
@@ -42,8 +40,9 @@
       ansible.builtin.include_role:
         name: podman
       vars:
-        action: create_volumes
-        container_volumes: "{{ kafka_ui_vars.container.volumes }}"
+        action_type: create_volumes
+        container_volumes: "{{ kafka_ui_container_volumes }}"
+        volume_mode: "{{ kafka_ui_container_volume_mode | default('0777') }}"
 
     #####################################################
     ## Firewall configuration                          ##
@@ -52,80 +51,44 @@
     # Open firewall ports
     - name: Open firewall ports...
       become: true
-      ansible.builtin.firewalld:
-        port: "{{ kafka_ui_vars.container.ports[0].split(':')[0] }}/tcp"
+      ansible.posix.firewalld:
+        port: "{{ (item.split(':')[0]) }}/tcp"
         permanent: true
         state: enabled
         immediate: true
+      loop: "{{ kafka_ui_container_ports | default([]) }}"
 
     #####################################################
     ## Import container                                ##
     #####################################################
 
     # Import container
-    - name: "Install {{ kafka_ui_vars.container.name }} container on podman"
+    - name: "Install {{ kafka_ui_container_name }} container on podman"
       ansible.builtin.include_role:
         name: podman
       vars:
-        action: import_container
-        container_name: "{{ kafka_ui_vars.container.name }}"
-        container_repository_url: "{{ kafka_ui_vars.container.repository_url }}"
-        container_repository_tag: "{{ kafka_ui_vars.container.repository_tag | default('latest') }}"
-        container_repository_checksum: "{{ kafka_ui_vars.container.repository_checksum | default(omit) }}"
-        container_repository_checksum_algorithm: "{{ kafka_ui_vars.container.repository_checksum_algorithm | default(omit) }}"
-        container_ports: "{{ kafka_ui_vars.container.ports }}"
-        container_volumes: "{{ kafka_ui_vars.container.volumes }}"
-        container_env: "{{ kafka_ui_vars.container.env | default({}) }}"
-        container_healthcheck: "{{ kafka_ui_vars.container.healthcheck | default(omit) }}"
-        container_healthcheck_fail: "{{ kafka_ui_vars.container.healthcheck_fail | default('none') }}"
-        container_healthcheck_retries: "{{ kafka_ui_vars.container.healthcheck_retries | default(omit) }}"
-        container_healthcheck_interval: "{{ kafka_ui_vars.container.healthcheck_interval | default(omit) }}"
-        container_healthcheck_timeout: "{{ kafka_ui_vars.container.healthcheck_timeout | default(omit) }}"
-        container_healthcheck_start: "{{ kafka_ui_vars.container.healthcheck_start | default(omit) }}"
-
-#########################################################
-## Installation via kubernetes                         ##
-#########################################################
-
-- name: Install container on Kubernetes...
-  when: kafka_ui_vars.container.platform == "kubernetes"
-  block:
-
-    # Debug message
-    - name: Debug message
-      ansible.builtin.debug:
-        msg: "Install application via kubernetes"
-
-    # Show information message
-    - name: This part is not (yet) implemented.
-      ansible.builtin.debug:
-        msg: "This part is not (yet) implemented."
-
-    # Stop playbook
-    - name: Stop playbook
-      ansible.builtin.meta: end_play
-
-#########################################################
-## Installation on host                                ##
-#########################################################
-
-- name: Install application on host...
-  when: kafka_ui_vars.container.platform == "host"
-  block:
-
-    # Debug message
-    - name: Debug message
-      ansible.builtin.debug:
-        msg: "Install application on host"
-
-    # Show information message
-    - name: This part is not (yet) implemented.
-      ansible.builtin.debug:
-        msg: "This part is not (yet) implemented."
-
-    # Stop playbook
-    - name: Stop playbook
-      ansible.builtin.meta: end_play
+        action_type: import_container
+        container_name: "{{ kafka_ui_container_name }}"
+        container_repository_url: "{{ kafka_ui_container_repository_url }}"
+        container_repository_tag: "{{ kafka_ui_container_repository_tag | default(omit) }}"
+        container_repository_checksum: "{{ kafka_ui_container_repository_checksum | default(omit) }}"
+        container_repository_checksum_algorithm: "{{ kafka_ui_container_repository_checksum_algorithm | default(omit) }}"
+        container_ports: "{{ kafka_ui_container_ports | default(omit) }}"
+        container_volumes: "{{ kafka_ui_container_volumes | default(omit) }}"
+        container_volumes_mode: "{{ kafka_ui_container_volume_mode | default(omit) }}"
+        container_command: "{{ kafka_ui_container_command | default(omit) }}"
+        container_security_opt: "{{ kafka_ui_container_security_opt | default(omit) }}"        
+        container_env: "{{ kafka_ui_container_env | default({}) }}"
+        container_privileged: "{{ kafka_ui_container_privileged | default(omit) }}"
+        container_cap_add: "{{ kafka_ui_container_cap_add | default(omit) }}"
+        container_cap_drop: "{{ kafka_ui_container_cap_drop | default(omit) }}"
+        container_user: "{{ kafka_ui_container_user | default(omit) }}"
+        container_healthcheck: "{{ kafka_ui_container_healthcheck | default(omit) }}"
+        container_healthcheck_fail: "{{ kafka_ui_container_healthcheck_fail | default('none') }}"
+        container_healthcheck_retries: "{{ kafka_ui_container_healthcheck_retries | default(omit) }}"
+        container_healthcheck_interval: "{{ kafka_ui_container_healthcheck_interval | default(omit) }}"
+        container_healthcheck_timeout: "{{ kafka_ui_container_healthcheck_timeout | default(omit) }}"
+        container_healthcheck_start: "{{ kafka_ui_container_healthcheck_start | default(omit) }}"
 
 #########################################################
 ## Configuration                                       ##

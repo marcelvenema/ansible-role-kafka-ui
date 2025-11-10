@@ -1,38 +1,25 @@
 ---
-
 ############################################################
 ## Main module for Kafka UI Ansible role                  ##
 ############################################################
 
+# If action variable is not defined, gather status of the service and set action variable  
+- name: Gather action variable status...
+  ansible.builtin.include_tasks: set_action_type.yml
+  when: action_type is not defined
+
 # Show message
 - name: Show action message
   ansible.builtin.debug:
-    msg: "Starting role {{ role_name }}... action: {{ action }}."
-
-# If action variable is not defined, gather status of the service and set action variable  
-- name: Gather action variable status...
-  ansible.builtin.include_tasks: get_status.yml
-  when: action is not defined
+    msg: "Starting role {{ role_name }}... action: {{ action_type }}."
 
 # Assert that action is in actions
-- name: "Verify valid action ({{ action }})..."
+- name: "Verify valid action ({{ action_type }})..."
   ansible.builtin.assert:
     that:
-      - action in (actions | map('dict2items') | map('first') | map(attribute='key') | list)
-    fail_msg: "The action '{{ action }}' is not in the list of valid actions..."
+      - action_type in (actions | map('dict2items') | map('first') | map(attribute='key') | list)
+    fail_msg: "The action '{{ action_type }}' is not in the list of valid actions..."
     quiet: true
-
-# Merge role defaults with vault, include nested variables
-# Nested merge does not work well, so use workaround to combine variables
-- name: Gather defaults (kafka_ui)...
-  ansible.builtin.include_vars:
-    file: "{{ role_path }}/defaults/main.yml"
-    name: kafka_ui_defaults
-
-# Merge role defaults, include nested variables
-- name: Merge role defaults with collected variables...
-  ansible.builtin.set_fact:
-    kafka_ui_vars: "{{ kafka_ui_defaults.kafka_ui | combine( kafka_ui | default({}), recursive=true ) }}"
 
 # TODO: Send message to Kafka bus
 - name: Publish message to Kafka bus...
@@ -41,12 +28,24 @@
   when: kafka_bootstrap_servers is defined
 
 # -------------------------------------------------------
-
 - name: Start install action...
   ansible.builtin.include_tasks: install.yml
-  when: action == "install"
+  when: action_type == "install"
 
 - name: Start uninstall action...
   ansible.builtin.include_tasks: uninstall.yml
-  when: action == "uninstall"
+  when: action_type == "uninstall"
 
+- name: Start update action...
+  ansible.builtin.include_tasks: update.yml
+  when: action_type == "update"
+
+- name: Start start action...
+  ansible.builtin.include_tasks: start.yml
+  when: action_type == "start"
+
+- name: Start stop action...
+  ansible.builtin.include_tasks: stop.yml
+  when: action_type == "stop"
+
+# -------------------------------------------------------

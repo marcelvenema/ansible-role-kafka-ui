@@ -1,0 +1,39 @@
+---
+#########################################################
+## Set action_type                                     ##
+#########################################################
+# If action variable is not defined, gather status of the service
+# If service not installed, set action to install. 
+# If the service is not started, set action to start.
+
+# Gather installed packages
+- name: Gather installed packages
+  ansible.builtin.package_facts:
+    manager: auto
+
+# Podman is installed
+- name: Podman is detected...
+  when: '"podman" in ansible_facts.packages'
+  block:
+    # List containers with containers.podman collection
+    - name: Gather containers from podman...
+      containers.podman.podman_container_info:
+        name: "{{ kafka_ui_container_name | default('kafka-server') }}"
+      register: podman_containers
+      failed_when: false
+
+    # Set action_type variable to start if container is not running
+    - name: Set variable (action_type)...
+      ansible.builtin.set_fact:
+        action_type: start
+      when:
+        - podman_containers.containers is defined
+        - podman_containers.containers | length > 0
+        - podman_containers.containers[0].State.Status is defined
+        - podman_containers.containers[0].State.Status != 'running'
+
+    # Set action variable to install if container is not installed
+    - name: Set variable (action_type)...
+      ansible.builtin.set_fact:
+        action_type: install
+      when: podman_containers.containers is not defined or (podman_containers.containers | length) == 0

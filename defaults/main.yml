@@ -1,70 +1,70 @@
 ---
-
 #########################################################
 ## Kafka UI role defaults                              ##
 #########################################################
 
-# default role variables for the kafka-ui role
-kafka_ui:
-  # address is the URL to connect to the Kafka UI server.
-  address: ""
-  # username is the username to connect to the Kafka UI server.
-  username: ""
-  # password is the password to connect to the Kafka UI server.
-  password: ""
-  # token is the token used to authenticate to the Kafka UI server.
-  token: ""
-
-  # metadata contains information about the role.
-  metadata:
-    name: "kafka-ui"
-    description: "Provectus Kafka UI for managing Kafka clusters."
-    version: "0.7.2"
-    maintainer: ""
-    maintainer_email: ""
-
-  # application contains the configuration for the application server.
-  application:
-    # validate_certs configures if the certificate of the application server should be validated. example: true or false.
-    validate_certs: false
-
-  # container contains the configuration for the container used to run Kafka UI.
-  container:
-    # name is the name of the container used in podman or docker. example: "kafka-ui".
-    name: "kafka-ui"
-    # platform is the platform used for the container. example: "podman" or "docker".
-    platform: "podman"
-    # uninstall indicates if the container should be uninstalled or not. example: true or false. Default is false.
-    uninstall: false
-    # repository_url can be a URL to a docker image or a tar file. example: "docker.io/provectuslabs/kafka-ui" or "/tmp/kafka-ui.tar", "https://192.168.1.1/repo/kafka-ui.tar".
-    repository_url: "docker.io/provectuslabs/kafka-ui"
-    # repository_tag can be a tag of the image or a version of the tar file. example: "0.7.2" or "latest".
-    # repository_tag: "latest"
-    # repository_checksum can be a checksum of the container file. example: "sha256:1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef".
-    # repository_checksum: ""
-    # repository_checksum_algorithm can be a checksum algorithm of the container file. example: "sha256", "sha512", "md5".
-    # repository_checksum_algorithm: "sha256"
-    # ports is a list of ports used in the container. example: ["8080:8080"] or ["8080:8080", "8081:8081"].
-    ports:
-      - "8080:8080"
-    # volumes is a list of volumes used in the container. example: ["kafka-ui/config.yml:/config.yml:Z"] or ["kafka-ui/config.yml:/config.yml:Z", "kafka-ui/data:/data:Z"].
-    volumes:
-      - "kafka-ui:/config.yml:Z"
-    # volume_mode is the mode of the volume used in the container. example: "0777" or "0755". Default is "0777".
-    volume_mode: "0777"
-    # environment is a list of environment variables used in the container. example: ["DYNAMIC_CONFIG_ENABLED=true"].
-    environment:
-      DYNAMIC_CONFIG_ENABLED: "true"
-    # healthcheck is the command used to check if the container is healthy. example: "curl -f http://localhost:8080/health || exit 1".
-    healthcheck: "wget -qO- http://127.0.0.1:8080/actuator/health || exit 1"
-    # healthcheck_start is the time to wait before starting the health check. example: "30s".
-    healthcheck_start: "30s"
-
-  # secrets contains the configuration for the vault used for storing secrets and configuration data.
-  secrets:
-    # secret_name is the unique id of the vault used for storing secrets and configuration data. default is {{ ansible_fqdn }}.
-    secret_name: "{{ ansible_fqdn | replace('.', '-') }}"
-    # secret_engine_name is the name of the vault used for storing secrets and configuration data. example: "kafka-ui-repository".
-    secret_engine_name: "kafka-ui"
-    # secret_engine_description is the description of the vault used for storing secrets and configuration data.  example: "Secrets for Provectus Kafka UI."
-    secret_engine_description: "Secrets for Provectus Kafka UI."
+# default variables for the cockpit role
+# address, username, password, token can be set via vault or extra_vars
+kafka_ui_address: ""
+kafka_ui_username: ""
+kafka_ui_password: ""
+kafka_ui_token: ""
+# validate_certs configures if the certificate of the application server should be validated. example: true or false..
+kafka_ui_application_validate_certs: false
+# container_name is the name of the container used in podman or docker. example: "openbao".
+kafka_ui_container_name: "kafka-ui"
+# platform is the platform used for the container. example: "podman", "kubernetes", "docker" or "autodetect".
+kafka_ui_container_platform: "podman"
+# uninstall indicates if the container should be uninstalled. example: true or false. Default is false.
+kafka_ui_container_uninstall: false
+# repository_url can be a URL to a docker image or a tar file. example: "https://docker.io/sonatype/nexus3"
+# or "/tmp/nexus3.67.1.tar", "https://192.168.1.1/repo/nexus.tar".
+kafka_ui_container_repository_url: "docker.io/provectuslabs/kafka-ui"
+# repository_tag is a tag of the image or a version of the tar file. example: "3.67.1" or "latest" Default is "latest".
+# kafka_ui_container_repository_tag: 2.4.1
+# repository_checksum can be a checksum of the container file. example: "sha256:1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef"
+# or "1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef".
+# kafka_ui_container_repository_checksum: ""
+# repository_checksum_algorithm can be a checksum algorithm of the container file. example: "sha256", sha512", "md5".
+# kafka_ui_container_repository_checksum_algorithm: "sha256"
+# ports is a list of ports used in the container. example: ["8200:8200"] or ["8200:8200", "8201:8201"].
+kafka_ui_container_ports:
+  - "8080:8080"
+# volumes is a list of volumes used in the container. example: ["vault/config:/vault/config:Z"] or
+# ["vault/config:/vault/config:Z", "vault/file:/vault/file:Z"]
+kafka_ui_container_volumes:
+  - "kafka-ui:/config.yml:Z"
+# volume_mode is the mode of the volume used in the container. example: "0777" or "0755". Default is "0777".
+kafka_ui_container_volume_mode: "0777"
+# command is the command used to start the container. example: "vault server -config=/vault/config/vault.hcl".
+# kafka_ui_container_command: ""
+# security_opt is a list of security options used in the container. example: ["label=disable"].
+# kafka_ui_container_security_opt: [label=disable]
+# environment is a list of environment variables used in the container.
+kafka_ui_container_environment:
+  DYNAMIC_CONFIG_ENABLED: "true"
+# privileged indicates if the container should be run in privileged mode. example: true or false. Default is false.
+# kafka_ui_container_privileged: false
+# cap_add is a list of capabilities to add to the container. example: ["SYS_ADMIN", "NET_ADMIN"].
+# kafka_ui_container_cap_add: IPC_LOCK
+# cap_drop is a list of capabilities to drop from the container. example: ["MKNOD"].
+# kafka_ui_container_cap_drop: 
+# user is the user to run the container as. example: "1000:
+# kafka_ui_container_user: "1000:1000"
+# healthcheck is the command used to check if the container is healthy. example: "curl -f http://localhost:8080/health || exit 1".
+kafka_ui_container_healthcheck: "wget -qO- http://127.0.0.1:8080/actuator/health || exit 1"
+kafka_ui_container_healthcheck_start: "30s"
+# healthcheck_interval is the interval between health checks. example: "30s".
+kafka_ui_container_healthcheck_interval: 30s
+# healthcheck_timeout is the timeout for the health check. example: "30s".
+kafka_ui_container_healthcheck_timeout: 30s
+# healthcheck_retries is the number of retries for the health check. example: "3".
+kafka_ui_container_healthcheck_retries: 5
+# quadlet_options is a list of options used in the container.
+# kafka_ui_container_quadlet_options: []
+# secret_name is the unique id of the vault used for storing secrets and configuration data. default is {{ansible_fqdn }}.
+kafka_ui_secret_name: "{{ ansible_fqdn | replace('.', '-') }}"
+# secret_engine_name is the name of the vault used for storing secrets and configuration data. example: "nexus-repository".
+kafka_ui_secret_engine_name: "kafka-ui"
+# secret_engine_description is the description of the vault used for storing secrets and configuration data. example: "Secrets for Sonatype Nexus Repository.".
+kafka_ui_secret_engine_description: "Secrets for Provectus Kafka UI." 
